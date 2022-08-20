@@ -18,7 +18,7 @@ void updateStr(MediaManager.MediaSession session, GlobalSystemMediaTransportCont
     }
 }
 
-bool isPlaying = false;
+bool isPlaying = true;
 
 void updateBool(MediaManager.MediaSession session, GlobalSystemMediaTransportControlsSessionPlaybackInfo playbackInfo)
 {
