@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32526.322
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "oscChatBoxMusic", "oscChatBoxMusic\oscChatBoxMusic.csproj", "{BEBD19B6-6E3E-49EF-A9B7-C95C4AE11A83}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BEBD19B6-6E3E-49EF-A9B7-C95C4AE11A83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEBD19B6-6E3E-49EF-A9B7-C95C4AE11A83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEBD19B6-6E3E-49EF-A9B7-C95C4AE11A83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEBD19B6-6E3E-49EF-A9B7-C95C4AE11A83}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {126B7F5B-FE9F-4BDE-8D18-5DD99DD1EF8D}
+	EndGlobalSection
+EndGlobal
