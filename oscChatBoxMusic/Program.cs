@@ -1,49 +1,68 @@
 ﻿using System.Net;
-using WindowsMediaController;
 using Windows.Media.Control;
+using WindowsMediaController;
 Console.WriteLine("program started");
 
 var mediaManager = new MediaManager();
+MediaManager.MediaSession? SelectedSession = null;
+bool isPlaying = true;
+string songName = "";
+
 mediaManager.OnAnyMediaPropertyChanged += updateStr;
 mediaManager.OnAnyPlaybackStateChanged += updateBool;
 
-string songName = "";
-
 void updateStr(MediaManager.MediaSession session, GlobalSystemMediaTransportControlsSessionMediaProperties playbackInfo)
 {
-    if (IsValidSession(session))
+    CheckSessionNull(session);
+    if (session == SelectedSession)
     {
         songName = $"{(string.IsNullOrEmpty(playbackInfo.Artist) ? "" : $"{playbackInfo.Artist} - ")}{playbackInfo.Title}";
-        Console.WriteLine($"{session.Id} {(string.IsNullOrEmpty(playbackInfo.Artist) ? "" : $"{playbackInfo.Artist} - ")}{playbackInfo.Title}");
+        ConsoleColorSelected();
     }
+    Console.WriteLine($"{session.Id} {(string.IsNullOrEmpty(playbackInfo.Artist) ? "" : $"{playbackInfo.Artist} - ")}{playbackInfo.Title}");
+    ConsoleColorReset();
 }
 
-bool isPlaying = true;
 
 void updateBool(MediaManager.MediaSession session, GlobalSystemMediaTransportControlsSessionPlaybackInfo playbackInfo)
 {
-    if (IsValidSession(session))
+    CheckSessionNull(session);
+    if (SelectedSession == session)
     {
-        switch (playbackInfo.PlaybackStatus)
-        {
-            case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused:
-            case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped:
-            case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Closed:
-                isPlaying = false;
-                break;
-            case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Opened:
-            case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing:
-                isPlaying = true;
-                break;
-        }
-        Console.WriteLine($"{session.Id} is now {playbackInfo.PlaybackStatus}");
+        isPlaying = Paused(playbackInfo.PlaybackStatus) ?? isPlaying;
+        ConsoleColorSelected();
+    }
+    Console.WriteLine($"{session.Id} is now {playbackInfo.PlaybackStatus}");
+    ConsoleColorReset();
+}
+
+bool? Paused(GlobalSystemMediaTransportControlsSessionPlaybackStatus playbackStatus)
+{
+    switch (playbackStatus)
+    {
+        case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused:
+        case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped:
+        case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Closed:
+            return false;
+        case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Opened:
+        case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing:
+            return true;
+    }
+    return null;
+}
+
+void CheckSessionNull(MediaManager.MediaSession session)
+{
+    if (SelectedSession == null && ProbablySpotify(session))
+    {
+        SelectedSession = session;
     }
 }
 
-bool IsValidSession(MediaManager.MediaSession session)
-{
-    return session.Id.StartsWith("SpotifyAB.SpotifyMusic") && session.Id.EndsWith("!Spotify");
-}
+bool ProbablySpotify(MediaManager.MediaSession session) => session.Id.StartsWith("SpotifyAB.SpotifyMusic") && session.Id.EndsWith("!Spotify");
+void ConsoleColorSelected() => Console.ForegroundColor = ConsoleColor.Green;
+void ConsoleColorReset() => Console.ForegroundColor = ConsoleColor.Gray;
+
 
 mediaManager.Start();
 Console.WriteLine("Media Manager Initialized");
