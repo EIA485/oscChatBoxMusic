@@ -3,7 +3,7 @@ a simple program that sends what song is playing via osc
 
 # ctrls
 press the `enter` key to bring up the menu that lets you select what program to monitor.
-use the arrow keys to navigate the available options
+use the arrow keys to navigate the available options, then press enter to select.
 
 # credits
 [Lyuma](https://github.com/lyuma/) for creating [SimpleOSC](https://gist.github.com/lyuma/120d2736d6963460fc641fe24c1b02f7)
