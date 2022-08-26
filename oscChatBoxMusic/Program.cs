@@ -8,19 +8,22 @@ var mediaManager = new MediaManager();
 MediaManager.MediaSession? SelectedSession = null;
 bool isPlaying = true;
 string songName = "";
+var sesionToProperties = new Dictionary<MediaManager.MediaSession, GlobalSystemMediaTransportControlsSessionMediaProperties>();
 
 mediaManager.OnAnyMediaPropertyChanged += updateStr;
 mediaManager.OnAnyPlaybackStateChanged += updateBool;
+string FormatedName(GlobalSystemMediaTransportControlsSessionMediaProperties playbackInfo) => $"{(string.IsNullOrEmpty(playbackInfo.Artist) ? "" : $"{playbackInfo.Artist} - ")}{playbackInfo.Title}";
 
-void updateStr(MediaManager.MediaSession session, GlobalSystemMediaTransportControlsSessionMediaProperties playbackInfo)
+void updateStr(MediaManager.MediaSession session, GlobalSystemMediaTransportControlsSessionMediaProperties mediaProperties)
 {
+    sesionToProperties[session] = mediaProperties;
     CheckSessionNull(session);
     if (session == SelectedSession)
     {
-        songName = $"{(string.IsNullOrEmpty(playbackInfo.Artist) ? "" : $"{playbackInfo.Artist} - ")}{playbackInfo.Title}";
+        songName = FormatedName(mediaProperties);
         ConsoleColorSelected();
     }
-    Console.WriteLine($"{session.Id} {(string.IsNullOrEmpty(playbackInfo.Artist) ? "" : $"{playbackInfo.Artist} - ")}{playbackInfo.Title}");
+    Console.WriteLine($"{session.Id}: {FormatedName(mediaProperties)}");
     ConsoleColorReset();
 }
 
@@ -73,31 +76,31 @@ OSC.OpenClient(9001); // this needed otherwise simple osc breaks
 OSC.SetUnconnectedEndpoint(new IPEndPoint(IPAddress.Loopback, 9000));
 
 BackgroundWorker bw = new BackgroundWorker();
-bw.DoWork += (a, b) => {
-    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter) OpenSessionDialog();
+bw.DoWork += (a, b) =>
+{
+    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter && mediaManager.CurrentMediaSessions.Count > 1)
+    {
+        var lastSession = SelectedSession;
+        string[] sessionNames = mediaManager.CurrentMediaSessions.Select((e) => e.Key).ToArray();
+        SelectedSession = mediaManager.CurrentMediaSessions[sessionNames[ConsoleHelper.MultiChoice(sessionNames)]];
+        ConsoleColorSelected();
+        Console.WriteLine($"{SelectedSession.Id} has been selected");
+        songName = sesionToProperties[SelectedSession] == null ? "" : FormatedName(sesionToProperties[SelectedSession]);
+        isPlaying = Paused(SelectedSession.ControlSession.GetPlaybackInfo().PlaybackStatus) ?? false;
+        if (isPlaying) Console.WriteLine("updated osc to: " + songName);
+        ConsoleColorReset();
+    }
     else Thread.Sleep(150);
 };
 bw.RunWorkerCompleted += (a, b) => { if (!bw.IsBusy) bw.RunWorkerAsync(); };
 bw.RunWorkerAsync();
-
-
-void OpenSessionDialog()
-{
-    string[] sessionNames = mediaManager.CurrentMediaSessions.Select((e)=>e.Key).ToArray();
-    SelectedSession = mediaManager.CurrentMediaSessions[sessionNames[ConsoleHelper.MultiChoice(sessionNames)]];
-    ConsoleColorSelected();
-    Console.WriteLine($"{SelectedSession.Id} has been selected");
-    ConsoleColorReset();
-}
-
-
 
 bool lastIsPlaying = false;
 while (true)
 {
     bool offFrame = ((lastIsPlaying != isPlaying) && (lastIsPlaying == true));
 
-    if (isPlaying || offFrame)
+    if ((isPlaying && SelectedSession != null && !string.IsNullOrEmpty(songName)) || offFrame)
         OSC.SendOSCPacket(new SimpleOSC.OSCMessage { path = "/chatbox/input", arguments = new object[2] { offFrame ? "" : songName, true/*send msg right away*/ }, typeTag = "" }, oscBuf);
 
     if (lastIsPlaying != isPlaying)
