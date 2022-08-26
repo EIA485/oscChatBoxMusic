@@ -1,9 +1,6 @@
 ﻿public struct ConsoleHelper
 {
-    internal static int MMod(int x, int m)
-    {
-        return (x % m + m) % m;
-    }
+    internal static int MMod(int x, int m) => (x % m + m) % m;
 
     public static int MultiChoice(params string[] args)
     {
@@ -46,7 +43,7 @@
                 break;
             };
 
-            ConsoleKeyInfo KeyInfo = System.Console.ReadKey(true);
+            ConsoleKeyInfo KeyInfo = Console.ReadKey(true);
             ConsoleKey Key = KeyInfo.Key;
 
             if (Key == ConsoleKey.Enter) clean = true;

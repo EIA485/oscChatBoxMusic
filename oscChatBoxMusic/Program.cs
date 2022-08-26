@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.ComponentModel;
 using Windows.Media.Control;
 using WindowsMediaController;
 Console.WriteLine("program started");
@@ -53,16 +54,12 @@ bool? Paused(GlobalSystemMediaTransportControlsSessionPlaybackStatus playbackSta
 
 void CheckSessionNull(MediaManager.MediaSession session)
 {
-    if (SelectedSession == null && ProbablySpotify(session))
-    {
-        SelectedSession = session;
-    }
+    if (SelectedSession == null && ProbablySpotify(session)) SelectedSession = session;
 }
 
 bool ProbablySpotify(MediaManager.MediaSession session) => session.Id.StartsWith("SpotifyAB.SpotifyMusic") && session.Id.EndsWith("!Spotify");
 void ConsoleColorSelected() => Console.ForegroundColor = ConsoleColor.Green;
 void ConsoleColorReset() => Console.ForegroundColor = ConsoleColor.Gray;
-
 
 mediaManager.Start();
 Console.WriteLine("Media Manager Initialized");
@@ -74,6 +71,26 @@ Console.WriteLine("connecting to osc");
 
 OSC.OpenClient(9001); // this needed otherwise simple osc breaks
 OSC.SetUnconnectedEndpoint(new IPEndPoint(IPAddress.Loopback, 9000));
+
+BackgroundWorker bw = new BackgroundWorker();
+bw.DoWork += (a, b) => {
+    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter) OpenSessionDialog();
+    else Thread.Sleep(150);
+};
+bw.RunWorkerCompleted += (a, b) => { if (!bw.IsBusy) bw.RunWorkerAsync(); };
+bw.RunWorkerAsync();
+
+
+void OpenSessionDialog()
+{
+    string[] sessionNames = mediaManager.CurrentMediaSessions.Select((e)=>e.Key).ToArray();
+    SelectedSession = mediaManager.CurrentMediaSessions[sessionNames[ConsoleHelper.MultiChoice(sessionNames)]];
+    ConsoleColorSelected();
+    Console.WriteLine($"{SelectedSession.Id} has been selected");
+    ConsoleColorReset();
+}
+
+
 
 bool lastIsPlaying = false;
 while (true)
