@@ -2,9 +2,9 @@
 {
     internal static int MMod(int x, int m) => (x % m + m) % m;
 
-    public static int MultiChoice(params string[] args)
+    public static int MultiChoice(int Default, params string[] args)
     {
-        int index = 0;
+        int index = Math.Max(Default, 0);
         int length = args.Length;
 
         int startLeft = Console.CursorLeft;
@@ -30,7 +30,7 @@
 
                 if (i == index)
                 {
-                    Console.BackgroundColor = ConsoleColor.White;
+                    Console.BackgroundColor = ConsoleColor.Green;
                     Console.ForegroundColor = ConsoleColor.Black;
                 }
                 Console.Write(s);

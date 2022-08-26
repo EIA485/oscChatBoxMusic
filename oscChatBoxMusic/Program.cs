@@ -2,6 +2,9 @@
 using System.ComponentModel;
 using Windows.Media.Control;
 using WindowsMediaController;
+
+const ConsoleColor SelectedColor = ConsoleColor.Green;
+
 Console.WriteLine("program started");
 
 var mediaManager = new MediaManager();
@@ -61,7 +64,7 @@ void CheckSessionNull(MediaManager.MediaSession session)
 }
 
 bool ProbablySpotify(MediaManager.MediaSession session) => session.Id.StartsWith("SpotifyAB.SpotifyMusic") && session.Id.EndsWith("!Spotify");
-void ConsoleColorSelected() => Console.ForegroundColor = ConsoleColor.Green;
+void ConsoleColorSelected() => Console.ForegroundColor = SelectedColor;
 void ConsoleColorReset() => Console.ForegroundColor = ConsoleColor.Gray;
 
 mediaManager.Start();
@@ -80,13 +83,16 @@ bw.DoWork += (a, b) =>
 {
     if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter && mediaManager.CurrentMediaSessions.Count > 1)
     {
-        var lastSession = SelectedSession;
+        int Selected = Array.IndexOf(mediaManager.CurrentMediaSessions.Select((e) => e.Value).ToArray(), SelectedSession);
         string[] sessionNames = mediaManager.CurrentMediaSessions.Select((e) => e.Key).ToArray();
-        SelectedSession = mediaManager.CurrentMediaSessions[sessionNames[ConsoleHelper.MultiChoice(sessionNames)]];
-        ConsoleColorSelected();
+        SelectedSession = mediaManager.CurrentMediaSessions[sessionNames[ConsoleHelper.MultiChoice(Selected, sessionNames)]];
+        Console.BackgroundColor = SelectedColor;
+        Console.ForegroundColor = ConsoleColor.Black;
         Console.WriteLine($"{SelectedSession.Id} has been selected");
         songName = sesionToProperties[SelectedSession] == null ? "" : FormatedName(sesionToProperties[SelectedSession]);
         isPlaying = Paused(SelectedSession.ControlSession.GetPlaybackInfo().PlaybackStatus) ?? false;
+        Console.BackgroundColor = ConsoleColor.Black;
+        ConsoleColorSelected();
         if (isPlaying) Console.WriteLine("updated osc to: " + songName);
         ConsoleColorReset();
     }
