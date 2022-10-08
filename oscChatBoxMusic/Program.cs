@@ -36,27 +36,15 @@ void updateBool(MediaManager.MediaSession session, GlobalSystemMediaTransportCon
     CheckSessionNull(session);
     if (SelectedSession == session)
     {
-        isPlaying = Paused(playbackInfo.PlaybackStatus) ?? isPlaying;
+        isPlaying = Paused(playbackInfo.PlaybackStatus);
         ConsoleColorSelected();
     }
     Console.WriteLine($"{session.Id} is now {playbackInfo.PlaybackStatus}");
     ConsoleColorReset();
 }
 
-bool? Paused(GlobalSystemMediaTransportControlsSessionPlaybackStatus playbackStatus)
-{
-    switch (playbackStatus)
-    {
-        case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused:
-        case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped:
-        case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Closed:
-            return false;
-        case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Opened:
-        case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing:
-            return true;
-    }
-    return null;
-}
+bool Paused(GlobalSystemMediaTransportControlsSessionPlaybackStatus playbackStatus) => playbackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
+
 
 void CheckSessionNull(MediaManager.MediaSession session)
 {
@@ -81,7 +69,7 @@ OSC.SetUnconnectedEndpoint(new IPEndPoint(IPAddress.Loopback, 9000));
 BackgroundWorker bw = new BackgroundWorker();
 bw.DoWork += (a, b) =>
 {
-    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter && mediaManager.CurrentMediaSessions.Count > 1)
+    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter && (mediaManager.CurrentMediaSessions.Count > 1 ||( mediaManager.CurrentMediaSessions.Count == 1 && SelectedSession != mediaManager.CurrentMediaSessions.First().Value)))
     {
         int Selected = Array.IndexOf(mediaManager.CurrentMediaSessions.Select((e) => e.Value).ToArray(), SelectedSession);
         string[] sessionNames = mediaManager.CurrentMediaSessions.Select((e) => e.Key).ToArray();
@@ -90,7 +78,7 @@ bw.DoWork += (a, b) =>
         Console.ForegroundColor = ConsoleColor.Black;
         Console.WriteLine($"{SelectedSession.Id} has been selected");
         songName = sesionToProperties[SelectedSession] == null ? "" : FormatedName(sesionToProperties[SelectedSession]);
-        isPlaying = Paused(SelectedSession.ControlSession.GetPlaybackInfo().PlaybackStatus) ?? false;
+        isPlaying = Paused(SelectedSession.ControlSession.GetPlaybackInfo().PlaybackStatus);
         Console.BackgroundColor = ConsoleColor.Black;
         ConsoleColorSelected();
         if (isPlaying) Console.WriteLine("updated osc to: " + songName);
@@ -114,4 +102,5 @@ while (true)
         lastIsPlaying = isPlaying;
     }
     Thread.Sleep(1500);
+    int check = mediaManager.CurrentMediaSessions.Count;
 }
